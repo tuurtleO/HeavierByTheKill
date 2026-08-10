@@ -1,0 +1,23 @@
+[package]
+name = "heavier-by-the-kill"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "heavier_by_the_kill"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "hbk-sim"
+path = "src/bin/sim.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[workspace]
+members = [".", "input-bridge"]
+default-members = [".", "input-bridge"]
+resolver = "2"

@@ -1,0 +1,15 @@
+HEAVIER BY THE KILL - OBS BROWSER OVERLAY
+
+1. Start Dark Souls Remastered and Heavier by the Kill normally.
+2. In your OBS scene, keep the Dark Souls Remastered Game Capture source.
+3. Add a Browser source above Game Capture.
+4. Set its URL to: http://127.0.0.1:27361/
+5. Set Width to 430 and Height to 492.
+6. Leave Custom CSS empty and enable "Shutdown source when not visible" if desired.
+
+The page has a transparent background. Resize or reposition the Browser source
+in the OBS preview like any other overlay. It is served only on this computer.
+
+If you change obs_overlay_port in heavier_by_the_kill.ini, use that port in the
+Browser source URL. Set obs_overlay_enabled=0 and restart the controller to turn
+the local OBS server off.

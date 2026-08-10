@@ -1,0 +1,10 @@
+/target/
+/artifacts/
+/controller/bin/
+/controller/obj/
+/.dotnet-home/
+/.live-reference/
+/heavier_by_kill.save
+/heavier_by_the_kill.save
+/profiles/
+/*.log

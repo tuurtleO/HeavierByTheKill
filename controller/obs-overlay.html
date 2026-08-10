@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{color-scheme:dark;--gold:#c29f5c;--white:#e2dccb;--muted:#a09a8c;--line:#5e4e32;--row-a:#1a1814;--row-b:#141310}
+*{box-sizing:border-box}html,body{width:430px;height:492px;margin:0;overflow:hidden;background:transparent;font-family:Georgia,"Times New Roman",serif;color:var(--white)}
+#hud{display:none;width:430px;background:linear-gradient(90deg,rgba(24,23,20,.94),rgba(8,8,7,.94));border:1px solid #7c6945;box-shadow:inset 0 0 0 4px #302b22;padding:12px 17px 14px}
+#tier{margin:0 5px;font-size:27px;line-height:35px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;text-shadow:0 1px 2px #000}
+.label{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:.35px}.weapon{padding:4px 7px 15px;border-bottom:1px solid var(--line)}#weaponType{display:block;margin-top:6px;font-size:13px}
+.weights{padding-top:8px}.weight-row{height:27px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--row-a)}.weight-row:nth-child(even){background:var(--row-b)}.weight-row span:first-child{color:var(--muted);font-size:11px;font-weight:700}.weight-row span:last-child{font-size:15px;font-weight:700}.permanent span:last-child{color:var(--gold)}
+.bar{display:flex;height:7px;margin-top:12px;background:#34312a;overflow:hidden}.bar .temporary{background:#8c887d}.bar .permanent{background:#ae8946}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:25px}.stat{height:54px;background:var(--row-a);border:1px solid #302b22;text-align:center;padding-top:5px}.stat .name{display:block;color:var(--muted);font-size:11px;font-weight:700}.stat .value{display:block;margin-top:3px;font-size:15px;font-weight:700}
+#context{margin-top:14px;padding-top:9px;border-top:1px solid var(--line)}.toast,.prompt{background:#272219;padding:11px 10px}.toast{min-height:40px;font-size:11px;font-weight:700}.prompt{min-height:112px}.prompt-title{color:var(--gold);font-size:13px;font-weight:700;letter-spacing:.2px}.controls{height:30px;padding-top:10px;font-size:11px}.detail{margin-top:8px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.detail.bad{color:#cd5b4d}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main id="hud">
+  <h1 id="tier"></h1>
+  <section class="weapon"><span class="label">WEAPON TYPE</span><span id="weaponType"></span></section>
+  <section class="weights">
+    <div class="weight-row"><span>TOTAL WEIGHT</span><span id="total"></span></div>
+    <div class="weight-row"><span>TEMPORARY</span><span id="temporary"></span></div>
+    <div class="weight-row permanent"><span>PERMANENT</span><span id="permanent"></span></div>
+  </section>
+  <div class="bar"><i class="temporary"></i><i class="permanent"></i></div>
+  <section class="stats">
+    <div class="stat"><span class="name">DMG</span><span class="value" id="damage"></span></div>
+    <div class="stat"><span class="name">SPEED</span><span class="value" id="speed"></span></div>
+    <div class="stat"><span class="name">STA</span><span class="value" id="stamina"></span></div>
+  </section>
+  <section id="context" class="hidden">
+    <div id="toast" class="toast hidden"></div>
+    <div id="prompt" class="prompt hidden">
+      <div id="promptTitle" class="prompt-title"></div>
+      <div id="controls" class="controls"></div>
+      <div id="detail" class="detail"></div>
+    </div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const colors={Cataclysmic:'#b8483f',Worldbreaker:'#be5b3e',Devastating:'#c56c40',Crushing:'#ca8444',Burdened:'#c7a45b',Tempered:'#a4ae97',Light:'#c5c2b5'};
+const num=value=>Number(value||0).toFixed(2);
+function render(s){
+  if(!s.ready){$('hud').style.display='none';return}
+  $('hud').style.display='block';$('tier').textContent=s.tier;$('tier').style.color=colors[s.tier]||colors.Light;
+  $('weaponType').textContent=String(s.weaponType).toUpperCase();$('total').textContent=num(s.total);$('temporary').textContent=num(s.temporary);$('permanent').textContent=num(s.permanent);
+  document.querySelector('.bar .temporary').style.width=`${Math.max(0,Math.min(1,s.temporaryFraction))*100}%`;
+  document.querySelector('.bar .permanent').style.width=`${Math.max(0,Math.min(1,s.permanentFraction))*100}%`;
+  $('damage').textContent=`×${num(s.damage)}`;$('speed').textContent=`×${num(s.speed)}`;$('stamina').textContent=`×${num(s.stamina)}`;
+  const hasToast=Boolean(s.toast),hasPrompt=s.prompt!=='none';$('context').classList.toggle('hidden',!hasToast&&!hasPrompt);
+  $('toast').classList.toggle('hidden',!hasToast);$('toast').textContent=s.toast||'';$('prompt').classList.toggle('hidden',!hasPrompt);
+  if(s.prompt==='reforge'){
+    $('promptTitle').textContent=s.reforgeWeight>0?`REFORGE ${num(s.reforgeWeight)} WEIGHT`:'NO TEMPORARY WEIGHT';
+    $('controls').textContent=s.reforgeWeight>0?'Press R1 or F8 to apply':'';
+    $('detail').textContent=`COST  ${Number(s.reforgeCost).toLocaleString()} SOULS`;$('detail').classList.toggle('bad',s.reforgeWeight>0&&!s.canAfford);
+  }else if(s.prompt==='bonfire'){
+    $('promptTitle').textContent=s.bonfireConsumed?'WEIGHT ALREADY REDUCED':'LIGHTEN EQUIPPED WEAPON';$('controls').textContent=s.bonfireConsumed?'':'Press R1 or F8 to apply';
+    $('detail').textContent=s.bonfireConsumed?'AVAILABLE AGAIN NEXT REST':`REMOVES ${s.restPercent}% TEMPORARY WEIGHT`;$('detail').classList.remove('bad');
+  }
+}
+async function refresh(){try{const response=await fetch('/state',{cache:'no-store'});render(await response.json())}catch{document.getElementById('hud').style.display='none'}}
+refresh();setInterval(refresh,100);
+</script>
+</body>
+</html>

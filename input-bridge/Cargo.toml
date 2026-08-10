@@ -1,0 +1,9 @@
+[package]
+name = "heavier-by-the-kill-input"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "heavier_by_the_kill_input"
+crate-type = ["cdylib"]
